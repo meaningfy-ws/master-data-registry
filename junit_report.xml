@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="0.031" timestamp="2023-06-13T23:13:22.915892" hostname="Neptun.local"><testcase classname="tests.unit.test_init_project" name="test_init_project" time="0.001" /></testsuite></testsuites>
