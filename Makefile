@@ -47,3 +47,21 @@ test-all-parallel:
 test-all:
 	@ echo -e "$(BUILD_PRINT)Complete Testing ...$(END_BUILD_PRINT)"
 	@ tox
+
+build-master-data-registry:
+	@ echo -e "$(BUILD_PRINT)Create master data registry ...$(END_BUILD_PRINT)"
+	@ cp .env infra/mdr/.env
+	@ cp requirements.txt infra/mdr/requirements.txt
+	@ cp -rf master_data_registry infra/mdr/master_data_registry
+	@ docker-compose -p common --file infra/mdr/docker-compose.yml --env-file ${ENV_FILE} build --no-cache --force-rm
+	@ rm infra/mdr/requirements.txt
+	@ rm -rf infra/mdr/master_data_registry || true
+	@ rm infra/mdr/.env
+
+start-master-data-registry:
+	@ echo -e "$(BUILD_PRINT)Start master data registry ...$(END_BUILD_PRINT)"
+	@ docker-compose -p common --file infra/mdr/docker-compose.yml --env-file ${ENV_FILE} up -d
+
+stop-master-data-registry:
+	@ echo -e "$(BUILD_PRINT)Stop master data registry ...$(END_BUILD_PRINT)"
+	@ docker-compose -p common --file infra/mdr/docker-compose.yml --env-file ${ENV_FILE} down

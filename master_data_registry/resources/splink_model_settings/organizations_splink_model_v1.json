@@ -1,0 +1,95 @@
+{
+    "link_type": "dedupe_only",
+    "comparisons": [
+        {
+            "output_column_name": "Thoroughfare",
+            "comparison_levels": [
+                {
+                    "sql_condition": "\"Thoroughfare_l\" IS NULL OR \"Thoroughfare_r\" IS NULL",
+                    "label_for_charts": "Null",
+                    "is_null_level": true
+                },
+                {
+                    "sql_condition": "\"Thoroughfare_l\" = \"Thoroughfare_r\"",
+                    "label_for_charts": "Exact match",
+                    "m_probability": 0.08766450372973043,
+                    "u_probability": 7.534172855451512e-05
+                },
+                {
+                    "sql_condition": "jaro_winkler_similarity(\"Thoroughfare_l\", \"Thoroughfare_r\") >= 0.9",
+                    "label_for_charts": "Jaro_winkler_similarity >= 0.9",
+                    "m_probability": 0.027552822951241198,
+                    "u_probability": 0.00013377000784169012
+                },
+                {
+                    "sql_condition": "jaro_winkler_similarity(\"Thoroughfare_l\", \"Thoroughfare_r\") >= 0.8",
+                    "label_for_charts": "Jaro_winkler_similarity >= 0.8",
+                    "m_probability": 0.49178390817926493,
+                    "u_probability": 0.003510309516121592
+                },
+                {
+                    "sql_condition": "jaro_winkler_similarity(\"Thoroughfare_l\", \"Thoroughfare_r\") >= 0.7",
+                    "label_for_charts": "Jaro_winkler_similarity >= 0.7",
+                    "m_probability": 0.05468377246091558,
+                    "u_probability": 0.0010240324738225934
+                },
+                {
+                    "sql_condition": "ELSE",
+                    "label_for_charts": "All other comparisons",
+                    "m_probability": 0.33831499267884796,
+                    "u_probability": 0.9952565462736596
+                }
+            ],
+            "comparison_description": "Exact match vs. Thoroughfare within jaro_winkler_similarity thresholds 0.9, 0.8, 0.7 vs. anything else"
+        },
+        {
+            "output_column_name": "LegalName",
+            "comparison_levels": [
+                {
+                    "sql_condition": "\"LegalName_l\" IS NULL OR \"LegalName_r\" IS NULL",
+                    "label_for_charts": "Null",
+                    "is_null_level": true
+                },
+                {
+                    "sql_condition": "\"LegalName_l\" = \"LegalName_r\"",
+                    "label_for_charts": "Exact match LegalName",
+                    "m_probability": 0.07794139801984462,
+                    "u_probability": 6.342494714587737e-05
+                },
+                {
+                    "sql_condition": "damerau_levenshtein(\"LegalName_l\", \"LegalName_r\") <= 1",
+                    "label_for_charts": "Damerau_levenshtein <= 1",
+                    "m_probability": 0.0015680928640677807,
+                    "u_probability": 2.114164904862579e-06
+                },
+                {
+                    "sql_condition": "jaro_winkler_similarity(\"LegalName_l\", \"LegalName_r\") >= 0.9",
+                    "label_for_charts": "Jaro_winkler_similarity >= 0.9",
+                    "m_probability": 0.012223138149049535,
+                    "u_probability": 5.7082452431289644e-05
+                },
+                {
+                    "sql_condition": "jaro_winkler_similarity(\"LegalName_l\", \"LegalName_r\") >= 0.8",
+                    "label_for_charts": "Jaro_winkler_similarity >= 0.8",
+                    "m_probability": 0.05135114537396255,
+                    "u_probability": 0.00027272727272727274
+                },
+                {
+                    "sql_condition": "ELSE",
+                    "label_for_charts": "All other comparisons",
+                    "m_probability": 0.8569162255930755,
+                    "u_probability": 0.9996046511627907
+                }
+            ],
+            "comparison_description": "Exact match vs. Legalname within levenshtein threshold 1 vs. Legalname within damerau-levenshtein threshold 1 vs. Legalname within jaro_winkler thresholds 0.9, 0.8 vs. anything else"
+        }
+    ],
+    "blocking_rules_to_generate_predictions": [
+        "l.NUTSId = r.NUTSId and substr(l.LegalName, 1,3) = substr(r.LegalName, 1,3)"
+    ],
+    "retain_matching_columns": true,
+    "retain_intermediate_calculation_columns": false,
+    "sql_dialect": "duckdb",
+    "linker_uid": "o6cfRBBc",
+    "probability_two_random_records_match": 0.0001
+}

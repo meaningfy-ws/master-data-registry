@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  master-data-registry_service:
+    container_name: master-data-registry-${ENVIRONMENT}
+    build:
+      context: .
+    env_file: ../../.env
+    volumes:
+      - master-data-registry-db:/usr/src/api//master_data_registry/resources/duckdb_databases
+    networks:
+      - proxy-net
+    labels:
+      #### Labels define the behavior and rules of the traefik proxy for this container ####
+      - "traefik.enable=true" # <== Enable traefik to proxy this container
+      - "traefik.http.routers.master-data-registry.rule=Host(`master-data-registry.${SUBDOMAIN}${DOMAIN}`)" # <== Your Domain Name goes here for the http rule
+      - "traefik.http.routers.master-data-registry.entrypoints=web" # <== Defining the entrypoint for http, **ref: line 30
+      - "traefik.http.routers.master-data-registry.middlewares=redirect@file" # <== This is a middleware to redirect to https
+      - "traefik.http.routers.master-data-registry-secured.rule=Host(`master-data-registry.${SUBDOMAIN}${DOMAIN}`)" # <== Your Domain Name for the https rule
+      - "traefik.http.routers.master-data-registry-secured.entrypoints=web-secured" # <== Defining entrypoint for https, **ref: line 31
+      - "traefik.http.routers.master-data-registry-secured.tls.certresolver=mytlschallenge" # <== Defining certsresolvers for https
+
+volumes:
+  master-data-registry-db:
+    name: master-data-registry-db-${ENVIRONMENT}
+
+networks:
+  proxy-net:
+    external:
+      name: proxy-net
