@@ -33,7 +33,7 @@ class SplinkRecordLinkageEngine(RecordLinkageEngineABC):
         :return: Preprocessed dataframe.
         """
         if UNIQUE_ID_COLUMN_NAME not in data.columns:
-            data[UNIQUE_ID_COLUMN_NAME] = unique_column_name if unique_column_name else data.index
+            data[UNIQUE_ID_COLUMN_NAME] = data[unique_column_name] if unique_column_name else data.index
         return data
 
     def finetune_model_config(self, data: pd.DataFrame, max_random_sampling_pairs: int,
