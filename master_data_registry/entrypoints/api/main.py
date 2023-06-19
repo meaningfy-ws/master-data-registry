@@ -1,3 +1,4 @@
+import secrets
 from typing import Optional
 
 import pandas as pd
@@ -19,33 +20,49 @@ class OrganizationDeduplicationParams(BaseModel):
     dataframe_json: str
     unique_column_name: str
     reference_table_name: Optional[str] = None
+    linkage_model_config: Optional[dict] = None
 
 
-async def api_auth(creds: HTTPBasicCredentials = Depends(HTTPBasic())):
-    username = creds.username
-    password = creds.password
-    if username == config.MASTER_DATA_REGISTRY_API_USER and password == config.MASTER_DATA_REGISTRY_API_PASSWORD:
-        return "OK"
-
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Incorrect username or password",
-        headers={"WWW-Authenticate": "Basic"},
+def api_auth(credentials: HTTPBasicCredentials = Depends(HTTPBasic())):
+    current_username_bytes = credentials.username.encode("utf8")
+    correct_username_bytes = config.MASTER_DATA_REGISTRY_API_USER.encode("utf8")
+    is_correct_username = secrets.compare_digest(
+        current_username_bytes, correct_username_bytes
     )
+    current_password_bytes = credentials.password.encode("utf8")
+    correct_password_bytes = config.MASTER_DATA_REGISTRY_API_PASSWORD.encode("utf8")
+    is_correct_password = secrets.compare_digest(
+        current_password_bytes, correct_password_bytes
+    )
+    if not (is_correct_username and is_correct_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect user or password!",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return "OK"
 
 
-@app.post("/api/v1/dedup_organizations", dependencies=[Depends(api_auth)])
+@app.post("/api/v1/dedup_and_link", dependencies=[Depends(api_auth)])
 def dedup_organizations(params: OrganizationDeduplicationParams):
-    dataframe_json = params.dataframe_json
-    unique_column_name = params.unique_column_name
-    reference_table_name = params.reference_table_name
-    dataframe = pd.read_json(dataframe_json)
-    result_links = get_organization_record_links(organization_records=dataframe,
-                                                 unique_column_name=unique_column_name,
-                                                 registry_duckdb_table_name=reference_table_name
-                                                 )
-    result_links.rename(columns={"unique_id_l": unique_column_name,
-                                 "unique_id_r": f"OrganizationRegistryID"
-                                 }, inplace=True)
-    return result_links.to_json()
+    try:
+        dataframe_json = params.dataframe_json
+        unique_column_name = params.unique_column_name
+        reference_table_name = params.reference_table_name
+        linkage_model_config = params.linkage_model_config
+        dataframe = pd.read_json(dataframe_json)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    try:
+        result_links = get_organization_record_links(organization_records=dataframe,
+                                                     unique_column_name=unique_column_name,
+                                                     registry_duckdb_table_name=reference_table_name,
+                                                     linkage_model_config=linkage_model_config
+                                                     )
+        result_links.rename(columns={"unique_id_l": unique_column_name,
+                                     "unique_id_r": f"{unique_column_name}_reference",
+                                     }, inplace=True)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
+    return result_links.to_json()
