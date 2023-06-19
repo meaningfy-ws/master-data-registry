@@ -69,6 +69,7 @@ def test_duckdb_delete_table(unit_test_duckdb_path, duplicates_records_dataframe
     assert not duckdb_adapter.check_if_table_exists(table_name="organizations")
     unit_test_duckdb_path.unlink()
 
+
 def test_duckdb_get_connection(unit_test_duckdb_path, duplicates_records_dataframe):
     unit_test_duckdb_path.unlink(missing_ok=True)
     duckdb_adapter = DuckDBAdapter(database_path=unit_test_duckdb_path)
