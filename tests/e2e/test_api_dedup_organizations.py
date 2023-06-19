@@ -15,14 +15,14 @@ def test_api_dedup_organizations(local_api_url, organization_duplicate_records, 
     ORGANIZATION_DUCKDB_DATABASE_PATH.unlink(missing_ok=True)
     response = requests.post(f"{local_api_url}/api/v1/dedup_and_link",
                              json={
-                                 "dataframe_json": organization_duplicate_records.to_json(),
+                                 "dataframe_json": organization_duplicate_records.to_json(orient="split"),
                                  "unique_column_name": organization_records_unique_id
                              },
                              auth=(config.MASTER_DATA_REGISTRY_API_USER, config.MASTER_DATA_REGISTRY_API_PASSWORD)
                              )
     assert response.status_code == 200
     reference_column_id = f"{organization_records_unique_id}_reference"
-    links_for_records = pd.read_json(response.json())
+    links_for_records = pd.read_json(response.json(), orient="split")
     first_recommended_unique_ids = set(links_for_records[reference_column_id].unique().tolist())
     assert len(links_for_records) == len(organization_duplicate_records)
     assert set(links_for_records["OrganizationId"].tolist()) == set(
@@ -30,13 +30,13 @@ def test_api_dedup_organizations(local_api_url, organization_duplicate_records, 
     assert all(links_for_records["match_probability"] == 1.0)
     response = requests.post(f"{local_api_url}/api/v1/dedup_and_link",
                              json={
-                                 "dataframe_json": organization_duplicate_records.to_json(),
+                                 "dataframe_json": organization_duplicate_records.to_json(orient="split"),
                                  "unique_column_name": organization_records_unique_id
                              },
                              auth=(config.MASTER_DATA_REGISTRY_API_USER, config.MASTER_DATA_REGISTRY_API_PASSWORD)
                              )
     assert response.status_code == 200
-    links_for_records = pd.read_json(response.json())
+    links_for_records = pd.read_json(response.json(), orient="split")
     second_recommended_unique_ids = set(links_for_records[reference_column_id].unique().tolist())
     assert len(links_for_records) == len(organization_duplicate_records)
     assert set(links_for_records["OrganizationId"].tolist()) == set(
