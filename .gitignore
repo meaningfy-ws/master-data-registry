@@ -160,3 +160,4 @@ cython_debug/
 #.idea/
 .idea/workspace.xml
 .idea
+tests/e2e/junit_report.xml

@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pandas as pd
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import HTTPBasicCredentials, HTTPBasic
@@ -16,6 +18,7 @@ UNIQUE_COLUMN_NAME_KEY = "unique_column_name"
 class OrganizationDeduplicationParams(BaseModel):
     dataframe_json: str
     unique_column_name: str
+    reference_table_name: Optional[str] = None
 
 
 async def api_auth(creds: HTTPBasicCredentials = Depends(HTTPBasic())):
@@ -35,10 +38,14 @@ async def api_auth(creds: HTTPBasicCredentials = Depends(HTTPBasic())):
 def dedup_organizations(params: OrganizationDeduplicationParams):
     dataframe_json = params.dataframe_json
     unique_column_name = params.unique_column_name
+    reference_table_name = params.reference_table_name
     dataframe = pd.read_json(dataframe_json)
     result_links = get_organization_record_links(organization_records=dataframe,
-                                                 unique_column_name=unique_column_name)
+                                                 unique_column_name=unique_column_name,
+                                                 registry_duckdb_table_name=reference_table_name
+                                                 )
     result_links.rename(columns={"unique_id_l": unique_column_name,
                                  "unique_id_r": f"OrganizationRegistryID"
                                  }, inplace=True)
     return result_links.to_json()
+
