@@ -52,7 +52,7 @@ def dedup_organizations(params: OrganizationDeduplicationParams):
         threshold_match_probability = params.threshold_match_probability
         reference_table_name = params.reference_table_name
         linkage_model_config = params.linkage_model_config
-        dataframe = pd.read_json(dataframe_json)
+        dataframe = pd.read_json(dataframe_json, orient="split")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     try:
@@ -68,4 +68,4 @@ def dedup_organizations(params: OrganizationDeduplicationParams):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-    return result_links.to_json()
+    return result_links.to_json(orient="split")
