@@ -9,6 +9,7 @@ from starlette import status
 
 from master_data_registry import config
 from master_data_registry.services.organization_registry import get_organization_record_links
+import logging
 
 app = FastAPI()
 
@@ -56,6 +57,7 @@ def dedup_organizations(params: OrganizationDeduplicationParams):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     try:
+        logging.info(msg=f"Received {len(dataframe)} records for deduplication and linking.\n{dataframe_json}")
         result_links = get_organization_record_links(organization_records=dataframe,
                                                      unique_column_name=unique_column_name,
                                                      threshold_match_probability=threshold_match_probability,
@@ -67,5 +69,7 @@ def dedup_organizations(params: OrganizationDeduplicationParams):
                                      }, inplace=True)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-
-    return result_links.to_json(orient="split")
+    result_links_json = result_links.to_json(orient="split")
+    logging.info(
+        msg=f"Returning {len(result_links)} links for deduplication and linking.\n{result_links_json}")
+    return result_links_json
