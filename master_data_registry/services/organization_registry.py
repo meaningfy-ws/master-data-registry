@@ -42,3 +42,4 @@ def get_organization_record_links(organization_records: pd.DataFrame,
                                                                unique_column_name=unique_column_name,
                                                                threshold_match_probability=threshold_match_probability)
     return links_for_records
+
