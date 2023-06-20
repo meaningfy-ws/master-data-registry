@@ -65,3 +65,9 @@ start-master-data-registry:
 stop-master-data-registry:
 	@ echo -e "$(BUILD_PRINT)Stop master data registry ...$(END_BUILD_PRINT)"
 	@ docker-compose -p common --file infra/mdr/docker-compose.yml --env-file ${ENV_FILE} down
+
+pull-master-data-registry-git:
+	@ echo -e "$(BUILD_PRINT)Pull master data registry ...$(END_BUILD_PRINT)"
+	@ git pull
+
+rebuild-and-start-master-data-registry: stop-master-data-registry pull-master-data-registry-git build-master-data-registry start-master-data-registry
