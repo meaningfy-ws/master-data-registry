@@ -10,7 +10,6 @@ from starlette import status
 from master_data_registry import config
 from master_data_registry.resources.duckdb_databases import ORGANIZATION_DUCKDB_DATABASE_PATH
 from master_data_registry.services.organization_registry import get_organization_record_links
-import logging
 
 from master_data_registry.services.registry_management import remove_reference_table
 
@@ -61,7 +60,6 @@ def dedup_organizations(params: OrganizationDeduplicationParams):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     try:
-        print(f"Received {len(dataframe)} records for deduplication and linking.\n{dataframe_json}")
         result_links = get_organization_record_links(organization_records=dataframe,
                                                      unique_column_name=unique_column_name,
                                                      threshold_match_probability=threshold_match_probability,
@@ -74,7 +72,6 @@ def dedup_organizations(params: OrganizationDeduplicationParams):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     result_links_json = result_links.to_json(orient=DATAFRAME_TO_JSON_ORIENT_TYPE)
-    print(f"Returning {len(result_links)} links for deduplication and linking.\n{result_links_json}")
     return result_links_json
 
 

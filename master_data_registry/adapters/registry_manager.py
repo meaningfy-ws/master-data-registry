@@ -100,6 +100,7 @@ class DuckDBRegistryManager(RegistryManagerABC):
             unlinked_clusters = minimized_clusters[~minimized_clusters[UNIQUE_ID_COLUMN_NAME].isin(linked_unique_ids)]
             result_linked_data_pairs = linked_clusters[[UNIQUE_ID_L_COLUMN_NAME, UNIQUE_ID_R_COLUMN_NAME,
                                                         MATCH_PROBABILITY_COLUMN_NAME]].copy()
+            print(result_linked_data_pairs)
             if len(unlinked_clusters) > 0:
                 self.duckdb_adapter.insert_dataframe(table_name=self.registry_table_name, data=unlinked_clusters)
                 result_unlinked_data_pairs = self.__get_pairs_from_unlinked_data(unlinked_data=unlinked_clusters)
