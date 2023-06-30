@@ -43,7 +43,10 @@ class DuckDBAdapter:
         :param table_name: The name of the table to write the dataframe to.
         :return:
         """
+        self.connection.register("data", data)
         self.connection.execute(f"CREATE TABLE {table_name} AS SELECT * FROM data;")
+        self.connection.unregister("data")
+
 
     def read_dataframe(self, table_name: str) -> pd.DataFrame:
         """
@@ -60,7 +63,9 @@ class DuckDBAdapter:
         :param table_name: The name of the table to insert the dataframe into.
         :return:
         """
+        self.connection.register("data", data)
         self.connection.execute(f"INSERT INTO {table_name} SELECT * FROM data")
+        self.connection.unregister("data")
 
     def delete_table(self, table_name: str, if_exists: bool = True):
         """
