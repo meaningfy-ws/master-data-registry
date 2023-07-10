@@ -32,8 +32,7 @@ class SplinkRecordLinkageEngine(RecordLinkageEngineABC):
         :param unique_column_name: Name of the column that uniquely identifies each record.
         :return: Preprocessed dataframe.
         """
-        if UNIQUE_ID_COLUMN_NAME not in data.columns:
-            data[UNIQUE_ID_COLUMN_NAME] = data[unique_column_name] if unique_column_name else data.index
+        data[UNIQUE_ID_COLUMN_NAME] = data[unique_column_name] if unique_column_name else data.index
         return data
 
     def finetune_model_config(self, data: pd.DataFrame, max_random_sampling_pairs: int,
@@ -67,15 +66,12 @@ class SplinkRecordLinkageEngine(RecordLinkageEngineABC):
         """
         linkage_engine_settings = self.model_config.copy()
         linkage_engine_settings["link_type"] = "dedupe_only"
-        self.duckdb_adapter.delete_table(DEFAULT_SRC_TABLE_NAME)
-        self.duckdb_adapter.create_table(data=data, table_name=DEFAULT_SRC_TABLE_NAME)
-        linker = DuckDBLinker(input_table_or_tables=DEFAULT_SRC_TABLE_NAME,
+        linker = DuckDBLinker(input_table_or_tables=[data],
                               settings_dict=linkage_engine_settings,
-                              connection=self.duckdb_adapter.get_connection()
+                              connection=":temporary:"
                               )
-        result_df = linker.predict(threshold_match_probability=threshold_match_probability)
-        self.duckdb_adapter.delete_table(DEFAULT_SRC_TABLE_NAME)
-        return result_df.as_pandas_dataframe()
+        result_df = linker.predict(threshold_match_probability=threshold_match_probability).as_pandas_dataframe()
+        return result_df
 
     def link_records(self, data: pd.DataFrame, reference_table_name: str,
                      threshold_match_probability: float = 0.8) -> pd.DataFrame:
@@ -87,15 +83,12 @@ class SplinkRecordLinkageEngine(RecordLinkageEngineABC):
         """
         linkage_engine_settings = self.model_config.copy()
         linkage_engine_settings["link_type"] = "link_only"
-        self.duckdb_adapter.delete_table(DEFAULT_SRC_TABLE_NAME)
-        self.duckdb_adapter.create_table(data=data, table_name=DEFAULT_SRC_TABLE_NAME)
-        linker = DuckDBLinker(input_table_or_tables=[DEFAULT_SRC_TABLE_NAME, reference_table_name],
+        linker = DuckDBLinker(input_table_or_tables=[data, reference_table_name],
                               input_table_aliases=["__ori", "_dest"],
                               connection=self.duckdb_adapter.get_connection(),
                               settings_dict=linkage_engine_settings)
-        result_df = linker.predict(threshold_match_probability=threshold_match_probability)
-        self.duckdb_adapter.delete_table(DEFAULT_SRC_TABLE_NAME)
-        return result_df.as_pandas_dataframe()
+        result_df = linker.predict(threshold_match_probability=threshold_match_probability).as_pandas_dataframe()
+        return result_df
 
     def dedupe_records_and_clustering(self, data: pd.DataFrame,
                                       threshold_match_probability: float = 0.8) -> pd.DataFrame:
@@ -108,9 +101,10 @@ class SplinkRecordLinkageEngine(RecordLinkageEngineABC):
         linkage_engine_settings = self.model_config.copy()
         linkage_engine_settings["link_type"] = "dedupe_only"
         linker = DuckDBLinker(input_table_or_tables=[data],
-                              connection=self.duckdb_adapter.get_connection(),
+                              connection=":temporary:",
                               settings_dict=linkage_engine_settings)
         dedup_data = linker.predict(threshold_match_probability=threshold_match_probability)
         result_clusters = linker.cluster_pairwise_predictions_at_threshold(dedup_data,
                                                                            threshold_match_probability=threshold_match_probability)
-        return result_clusters.as_pandas_dataframe()
+        result_df = result_clusters.as_pandas_dataframe()
+        return result_df

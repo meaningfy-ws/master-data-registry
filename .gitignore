@@ -162,3 +162,5 @@ cython_debug/
 .idea
 tests/e2e/junit_report.xml
 tests/unit/junit_report.xml
+.DS_Store
+tests/e2e/junit_report.xml

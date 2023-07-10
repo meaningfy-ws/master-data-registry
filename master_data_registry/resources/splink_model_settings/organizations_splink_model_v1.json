@@ -87,7 +87,7 @@
     "blocking_rules_to_generate_predictions": [
         "l.NUTSId = r.NUTSId and substr(l.LegalName, 1,3) = substr(r.LegalName, 1,3)"
     ],
-    "retain_matching_columns": true,
+    "retain_matching_columns": false,
     "retain_intermediate_calculation_columns": false,
     "sql_dialect": "duckdb",
     "linker_uid": "o6cfRBBc",
