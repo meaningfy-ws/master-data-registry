@@ -71,3 +71,7 @@ pull-master-data-registry-git:
 	@ git pull
 
 rebuild-and-start-master-data-registry: stop-master-data-registry pull-master-data-registry-git build-master-data-registry start-master-data-registry
+
+start-uvicorn-dev-server:
+	@ echo -e "$(BUILD_PRINT)Starting the dev uvicorn server ...$(END_BUILD_PRINT)"
+	@ uvicorn master_data_registry.entrypoints.api.main:app --reload
