@@ -37,7 +37,6 @@ def get_organization_record_links(organization_records: pd.DataFrame,
                                              linkage_model_config=linkage_model_config,
                                              registry_duckdb_table_name=registry_duckdb_table_name
                                              )
-
     links_for_records = registry_manager.get_links_for_records(data=organization_records,
                                                                unique_column_name=unique_column_name,
                                                                threshold_match_probability=threshold_match_probability)

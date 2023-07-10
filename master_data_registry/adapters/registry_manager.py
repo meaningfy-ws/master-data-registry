@@ -90,8 +90,8 @@ class DuckDBRegistryManager(RegistryManagerABC):
         prepared_data = self.linker_engine.preprocess_data(data=data, unique_column_name=unique_column_name)
         deduplicated_data_clusters = self.linker_engine.dedupe_records_and_clustering(data=prepared_data,
                                                                                       threshold_match_probability=threshold_match_probability)
-
         minimized_clusters = self.__minimize_cluster_records(data=deduplicated_data_clusters)
+
         if self.duckdb_adapter.check_if_table_exists(table_name=self.registry_table_name):
             linked_clusters = self.linker_engine.link_records(data=minimized_clusters,
                                                               reference_table_name=self.registry_table_name,

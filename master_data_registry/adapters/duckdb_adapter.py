@@ -43,9 +43,9 @@ class DuckDBAdapter:
         :param table_name: The name of the table to write the dataframe to.
         :return:
         """
-        self.connection.register("data", data)
-        self.connection.execute(f"CREATE TABLE {table_name} AS SELECT * FROM data;")
-        self.connection.unregister("data")
+        self.connection.register("tmp_data", data)
+        self.connection.execute(f"CREATE TABLE {table_name} AS SELECT * FROM tmp_data;")
+        self.connection.unregister("tmp_data")
 
 
     def read_dataframe(self, table_name: str) -> pd.DataFrame:
