@@ -75,3 +75,36 @@ rebuild-and-start-master-data-registry: stop-master-data-registry pull-master-da
 start-uvicorn-dev-server:
 	@ echo -e "$(BUILD_PRINT)Starting the dev uvicorn server ...$(END_BUILD_PRINT)"
 	@ uvicorn master_data_registry.entrypoints.api.main:app --reload
+
+
+guard-%:
+	@ if [ "${${*}}" = "" ]; then \
+        echo -e "$(BUILD_PRINT)Environment variable $* not set $(END_BUILD_PRINT)"; \
+        exit 1; \
+	fi
+
+# Testing that vault is installed
+vault-installed: #; @which vault1 > /dev/null
+	@ if ! hash vault 2>/dev/null; then \
+        echo -e "$(BUILD_PRINT)Vault is not installed, refer to https://www.vaultproject.io/downloads $(END_BUILD_PRINT)"; \
+        exit 1; \
+	fi
+# Get secrets in dotenv format
+
+dev-dotenv-file: guard-VAULT_ADDR guard-VAULT_TOKEN vault-installed
+	@ echo -e "$(BUILD_PRINT)Create .env file $(END_BUILD_PRINT)"
+	@ echo VAULT_ADDR=${VAULT_ADDR} > .env
+	@ echo VAULT_TOKEN=${VAULT_TOKEN} >> .env
+	@ echo DOMAIN=localhost >> .env
+	@ echo ENVIRONMENT=dev >> .env
+	@ echo SUBDOMAIN= >> .env
+	@ vault kv get -format="json" ted-data-dev/ted-sws | jq -r ".data.data | keys[] as \$$k | \"\(\$$k)=\(.[\$$k])\"" >> .env
+
+prod-dotenv-file: guard-VAULT_ADDR guard-VAULT_TOKEN vault-installed
+	@ echo -e "$(BUILD_PRINT)Create .env file $(END_BUILD_PRINT)"
+	@ echo VAULT_ADDR=${VAULT_ADDR} > .env
+	@ echo VAULT_TOKEN=${VAULT_TOKEN} >> .env
+	@ echo DOMAIN=ted-data.eu >> .env
+	@ echo ENVIRONMENT=prod >> .env
+	@ echo SUBDOMAIN= >> .env
+	@ vault kv get -format="json" ted-data-prod/ted-sws | jq -r ".data.data | keys[] as \$$k | \"\(\$$k)=\(.[\$$k])\"" >> .env
