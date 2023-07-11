@@ -17,7 +17,7 @@ app = FastAPI()
 
 DATAFRAME_JSON_KEY = "dataframe_json"
 UNIQUE_COLUMN_NAME_KEY = "unique_column_name"
-DATAFRAME_TO_JSON_ORIENT_TYPE = "split"
+DATAFRAME_TO_JSON_ORIENT_TYPE = "table"
 
 
 class OrganizationDeduplicationParams(BaseModel):
@@ -60,6 +60,11 @@ def dedup_organizations(params: OrganizationDeduplicationParams):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     try:
+        if unique_column_name not in dataframe.columns:
+            raise ValueError(f"Unique column name {unique_column_name} is not in the dataframe")
+        if not dataframe[unique_column_name].is_unique:
+            raise ValueError(f"Unique column name {unique_column_name} is not unique in the dataframe")
+
         result_links = get_organization_record_links(organization_records=dataframe,
                                                      unique_column_name=unique_column_name,
                                                      threshold_match_probability=threshold_match_probability,
