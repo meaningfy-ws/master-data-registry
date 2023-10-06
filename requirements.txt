@@ -1,4 +1,5 @@
 splink==3.9.3
+duckdb==0.8.1
 pyarrow==12.0.1
 fastapi==0.97.0
 uvicorn==0.22.0
