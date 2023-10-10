@@ -15,8 +15,10 @@ def test_registry_manager_get_links_for_records(duplicates_records_dataframe, sp
     assert len(links_for_records) == len(duplicates_records_dataframe)
     assert set(links_for_records["unique_id_l"].tolist()) == set(duplicates_records_dataframe.index.tolist())
     assert all(links_for_records["match_probability"] == 1.0)
+    duplicates_records_dataframe["unique_id"] = duplicates_records_dataframe["unique_id"] + 666
     links_for_records = registry_manager.get_links_for_records(data=duplicates_records_dataframe)
     assert len(links_for_records) == len(duplicates_records_dataframe)
     assert set(links_for_records["unique_id_l"].tolist()) == set(duplicates_records_dataframe.index.tolist())
     assert all(links_for_records["match_probability"] >= 0.99)
+    assert all(links_for_records["match_probability"] < 1.00)
     unit_test_duckdb_path.unlink()
