@@ -83,11 +83,13 @@ class SplinkRecordLinkageEngine(RecordLinkageEngineABC):
         """
         linkage_engine_settings = self.model_config.copy()
         linkage_engine_settings["link_type"] = "link_only"
-        linker = DuckDBLinker(input_table_or_tables=[data, reference_table_name],
+        self.duckdb_adapter.create_table(data=data, table_name="tmp_data_table")
+        linker = DuckDBLinker(input_table_or_tables=["tmp_data_table", reference_table_name],
                               input_table_aliases=["__ori", "_dest"],
                               connection=self.duckdb_adapter.get_connection(),
                               settings_dict=linkage_engine_settings)
         result_df = linker.predict(threshold_match_probability=threshold_match_probability).as_pandas_dataframe()
+        self.duckdb_adapter.delete_table(table_name="tmp_data_table")
         return result_df
 
     def dedupe_records_and_clustering(self, data: pd.DataFrame,
