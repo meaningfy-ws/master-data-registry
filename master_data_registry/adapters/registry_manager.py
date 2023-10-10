@@ -75,7 +75,7 @@ class DuckDBRegistryManager(RegistryManagerABC):
         result_unlinked_data_pairs = unlinked_data[[UNIQUE_ID_COLUMN_NAME]].copy()
         result_unlinked_data_pairs.rename(columns={UNIQUE_ID_COLUMN_NAME: UNIQUE_ID_L_COLUMN_NAME}, inplace=True)
         result_unlinked_data_pairs[UNIQUE_ID_R_COLUMN_NAME] = result_unlinked_data_pairs[UNIQUE_ID_L_COLUMN_NAME]
-        result_unlinked_data_pairs[MATCH_PROBABILITY_COLUMN_NAME] = 0.6666
+        result_unlinked_data_pairs[MATCH_PROBABILITY_COLUMN_NAME] = 1.0
         return result_unlinked_data_pairs
 
     def get_links_for_records(self, data: pd.DataFrame, unique_column_name: str = None,
@@ -93,37 +93,26 @@ class DuckDBRegistryManager(RegistryManagerABC):
         minimized_clusters = self.__minimize_cluster_records(data=deduplicated_data_clusters)
 
         if self.duckdb_adapter.check_if_table_exists(table_name=self.registry_table_name):
-            print("Reference table exist:")
             linked_clusters = self.linker_engine.link_records(data=minimized_clusters,
                                                               reference_table_name=self.registry_table_name,
                                                               threshold_match_probability=threshold_match_probability)
-            linked_unique_ids = linked_clusters[UNIQUE_ID_L_COLUMN_NAME].unique().tolist()
+            linked_unique_ids = linked_clusters[UNIQUE_ID_R_COLUMN_NAME].unique().tolist()
             unlinked_clusters = minimized_clusters[~minimized_clusters[UNIQUE_ID_COLUMN_NAME].isin(linked_unique_ids)]
             result_linked_data_pairs = linked_clusters[[UNIQUE_ID_L_COLUMN_NAME, UNIQUE_ID_R_COLUMN_NAME,
                                                         MATCH_PROBABILITY_COLUMN_NAME]].copy()
-            print("Linked unique ids:", len(linked_unique_ids))
-            print("Linked rows:", len(result_linked_data_pairs))
-            print("Unlinked rows:", len(unlinked_clusters))
             if len(unlinked_clusters) > 0:
                 self.duckdb_adapter.insert_dataframe(table_name=self.registry_table_name, data=unlinked_clusters)
                 result_unlinked_data_pairs = self.__get_pairs_from_unlinked_data(unlinked_data=unlinked_clusters)
-                print("Linked pairs")
-                print(result_linked_data_pairs.to_string())
-                print("Unlinked pairs")
-                print(unlinked_clusters.to_string())
                 result_linked_data_pairs = pd.concat([result_linked_data_pairs, result_unlinked_data_pairs])
-                print("After concat")
-                print(result_linked_data_pairs.to_string())
         else:
-            print("Reference table dont exist:")
             self.duckdb_adapter.create_table(table_name=self.registry_table_name, data=minimized_clusters)
             result_linked_data_pairs = self.__get_pairs_from_unlinked_data(unlinked_data=minimized_clusters)
-            print("Unlinked rows:", len(result_linked_data_pairs))
 
-        result_linked_data_pairs.rename(columns={UNIQUE_ID_L_COLUMN_NAME: CLUSTER_ID_COLUMN_NAME}, inplace=True)
+        result_linked_data_pairs.rename(columns={UNIQUE_ID_R_COLUMN_NAME: CLUSTER_ID_COLUMN_NAME}, inplace=True)
         result_linked_data_pairs = result_linked_data_pairs.merge(right=deduplicated_data_clusters,
                                                                   on=CLUSTER_ID_COLUMN_NAME, how="right")
-        result_linked_data_pairs.rename(columns={UNIQUE_ID_COLUMN_NAME: UNIQUE_ID_L_COLUMN_NAME}, inplace=True)
+        result_linked_data_pairs.rename(columns={UNIQUE_ID_L_COLUMN_NAME: UNIQUE_ID_R_COLUMN_NAME,
+                                                 UNIQUE_ID_COLUMN_NAME: UNIQUE_ID_L_COLUMN_NAME}, inplace=True)
         return result_linked_data_pairs[[UNIQUE_ID_L_COLUMN_NAME,
                                          UNIQUE_ID_R_COLUMN_NAME,
                                          MATCH_PROBABILITY_COLUMN_NAME]].copy()
