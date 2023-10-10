@@ -6,6 +6,8 @@ import pandas as pd
 import splink.duckdb.comparison_library as cl
 import splink.duckdb.comparison_template_library as ctl
 
+from tests.test_data import TEST_ORGANIZATION_DEDUPLICATION_DATA_PATH
+
 
 @pytest.fixture
 def duplicates_records_dataframe() -> pd.DataFrame:
@@ -48,3 +50,12 @@ def unit_test_duckdb_path() -> pathlib.Path:
 @pytest.fixture
 def duckdb_reference_table_name() -> str:
     return "reference_table_name"
+
+
+@pytest.fixture
+def organization_deduplication_data() -> pd.DataFrame:
+    return pd.read_csv(TEST_ORGANIZATION_DEDUPLICATION_DATA_PATH)
+
+@pytest.fixture
+def organization_data_unique_id() -> str:
+    return "OrganizationAddressId"

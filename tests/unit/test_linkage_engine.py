@@ -36,7 +36,7 @@ def test_linkage_engine_links_records(duplicates_records_dataframe, splink_model
                                             threshold_match_probability=0.8)
     assert len(result_df) == 4
     assert all(result_df['match_probability'] >= 0.8)
-    assert result_df["unique_id_r"].unique().tolist() == [1, 2]
+    assert result_df["unique_id_r"].unique().tolist() == [0, 1, 2, 3]
     unit_test_duckdb_path.unlink()
 
 

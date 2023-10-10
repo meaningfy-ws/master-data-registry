@@ -11,7 +11,6 @@ BLOCKING_RULES_TO_GENERATE_PREDICTIONS_KEY = "blocking_rules_to_generate_predict
 MAX_RANDOM_SAMPLING_PAIRS = 100000
 DEFAULT_SAMPLING_SEED = 6
 
-
 class SplinkRecordLinkageEngine(RecordLinkageEngineABC):
     """
     Record linkage engine based on Splink.
@@ -83,13 +82,15 @@ class SplinkRecordLinkageEngine(RecordLinkageEngineABC):
         """
         linkage_engine_settings = self.model_config.copy()
         linkage_engine_settings["link_type"] = "link_only"
-        self.duckdb_adapter.create_table(data=data, table_name="tmp_data_table")
-        linker = DuckDBLinker(input_table_or_tables=["tmp_data_table", reference_table_name],
-                              input_table_aliases=["__ori", "_dest"],
+        self.duckdb_adapter.create_table(data=data, table_name=DEFAULT_SRC_TABLE_NAME)
+        linker = DuckDBLinker(input_table_or_tables=[DEFAULT_SRC_TABLE_NAME, reference_table_name],
                               connection=self.duckdb_adapter.get_connection(),
                               settings_dict=linkage_engine_settings)
-        result_df = linker.predict(threshold_match_probability=threshold_match_probability).as_pandas_dataframe()
-        self.duckdb_adapter.delete_table(table_name="tmp_data_table")
+        result_df = linker.predict(threshold_match_probability=threshold_match_probability,
+                                   materialise_after_computing_term_frequencies=False
+                                   ).as_pandas_dataframe()
+        self.duckdb_adapter.delete_table(table_name=DEFAULT_SRC_TABLE_NAME)
+        linker.delete_tables_created_by_splink_from_db()
         return result_df
 
     def dedupe_records_and_clustering(self, data: pd.DataFrame,
